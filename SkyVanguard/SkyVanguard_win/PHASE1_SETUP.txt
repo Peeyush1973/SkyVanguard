@@ -1,0 +1,301 @@
+PHASE 1 - DRONE DELIVERY SAVE / PROGRESSION SETUP
+====================================================
+
+FILES IN THIS PACKAGE
+---------------------
+1. GameSaveSystem.cs
+2. UpgradeItemUI.cs
+3. DroneGameUIManager.cs
+4. MobilePerformanceBootstrap.cs (optional)
+
+IMPORTANT
+---------
+Replace your existing:
+- UpgradeItemUI.cs
+- DroneGameUIManager(1).cs
+
+with the versions in this package.
+
+Keep your existing:
+- MissionCardUI.cs
+- DailyRewardDayUI.cs
+- DroneDeliveryManager(3).cs
+- DroneGameHUDButtons(2).cs
+- MobileHoldButton.cs
+- DroneCamera.cs
+- DronePreviewManager.cs
+
+No changes are required to those files for Phase 1.
+
+UNITY SETUP
+-----------
+1. Create:
+   Assets/BIDSim/Scripts/Phase1/
+
+2. Copy all four .cs files into that folder.
+
+3. Make sure there is only ONE class named:
+   DroneGameUIManager
+   UpgradeItemUI
+
+   Delete/replace the old scripts instead of keeping duplicates.
+
+4. Let Unity compile.
+
+5. Open your scene and select the GameObject that contains DroneGameUIManager.
+
+6. Confirm the Inspector references are still assigned:
+   - Main Menu Panel
+   - Mission Select Panel
+   - Level Info Panel
+   - Upgrade Panel
+   - Settings Panel
+   - Daily Reward Panel
+   - Game HUD Panel
+   - Level Complete Panel
+   - Mission Card Prefab(s)
+   - Mission Content
+   - Upgrade Items
+   - Daily Reward Days
+   - HUD fields
+   - Complete screen fields
+   - Drone
+   - Drone Delivery Manager
+
+7. Open each UpgradeItemUI and verify:
+   Speed -> Upgrade Type = Speed
+   Battery -> Upgrade Type = Battery
+   Power -> Upgrade Type = Power
+   Durability -> Upgrade Type = Durability
+
+8. Keep startingLevel = 1 and maxLevel = 10 unless you intentionally want different values.
+
+WHAT IS NOW SAVED
+-----------------
+- Coins
+- Diamonds
+- Highest unlocked mission
+- Best stars for each mission
+- Speed upgrade level
+- Battery upgrade level
+- Power upgrade level
+- Durability upgrade level
+- Daily reward claimed state
+- Daily reward current day
+- Daily streak
+- Music toggle
+- Sound toggle
+- Graphics quality
+- Sensitivity value
+
+MISSION STARS
+-------------
+Your MissionCardUI already supports stars.
+
+The new UI manager now passes the SAVED best star count instead of always
+passing MissionDefinition.defaultStars.
+
+Example:
+Mission 1 = 3 stars
+Mission 2 = 2 stars
+Mission 3 = 0 stars
+
+If you replay Mission 2 and get 1 star, it stays at 2.
+If you replay Mission 2 and get 3 stars, it becomes 3.
+
+MISSION UNLOCK
+--------------
+When a mission is successfully delivered:
+- coins are awarded
+- highest unlocked mission advances
+- best stars are saved
+- save data is written to disk
+
+REWARDS
+-------
+The existing behavior is preserved:
+every successful delivery gives the mission reward.
+
+If you later want replay rewards reduced, that can be changed separately.
+
+UPGRADES
+--------
+UpgradeItemUI now loads its saved level on Awake.
+
+When the player upgrades:
+- coins are spent
+- level increases
+- upgrade level is saved
+- DroneGameUIManager reapplies the stats to the drone
+
+Your existing four upgrade types remain unchanged.
+
+DAILY REWARDS
+-------------
+The existing daily reward UI/logic is preserved and its current progress is
+now saved between launches.
+
+NOTE:
+The existing project logic advances the reward sequence when claimed. This
+Phase 1 save system preserves that behavior. It does NOT add a real-world
+24-hour calendar timer yet.
+
+SETTINGS
+--------
+Music/sound toggles, quality and sensitivity are saved.
+
+The existing SetMusic/SetSound methods do not control an AudioManager because
+the uploaded project does not contain one. They only persist the settings.
+We can connect actual audio later.
+
+RESET PROGRESS BUTTON
+---------------------
+DroneGameUIManager now exposes:
+
+ResetAllProgress()
+
+You can connect a hidden developer/test button to:
+DroneGameUIManager -> ResetAllProgress()
+
+It deletes the Phase 1 save data and reloads the current scene.
+
+ANDROID CONTROLS
+----------------
+No new movement script is required.
+
+Your existing MobileHoldButton already sends:
+Forward
+Backward
+Left
+Right
+RotateLeft
+RotateRight
+Ascend
+Descend
+
+Your existing DroneGameHUDButtons already sends:
+TakeOff
+Land
+Pickup
+Deliver
+
+So for Phase 1, test these on an Android build rather than changing the
+control system.
+
+OPTIONAL MOBILE PERFORMANCE
+---------------------------
+Create an empty GameObject:
+Bootstrap
+
+Add:
+MobilePerformanceBootstrap
+
+Recommended:
+Target Frame Rate = 60
+Disable Screen Sleep = ON
+
+Do not add this multiple times.
+
+TEST CHECKLIST
+--------------
+TEST 1 - New game
+-----------------
+Clear save using ResetAllProgress.
+Start the game.
+
+Expected:
+Coins = startingCoins
+Diamonds = startingDiamonds
+Mission 1 unlocked
+Other missions locked according to your mission settings
+Upgrades = starting levels
+Daily rewards = initial state
+
+TEST 2 - Upgrade save
+---------------------
+Open Upgrade.
+Buy Speed once.
+Close the game completely.
+Open the game again.
+
+Expected:
+Speed remains upgraded.
+Coins remain reduced.
+
+TEST 3 - Mission save
+---------------------
+Complete Mission 1.
+
+Expected:
+Coins increase.
+Mission 2 unlocks.
+Stars appear on Mission 1.
+
+Close game and reopen.
+
+Expected:
+Mission 2 remains unlocked.
+Mission 1 stars remain.
+
+TEST 4 - Better stars
+---------------------
+Replay a mission and beat the old star result.
+
+Expected:
+Saved stars increase.
+
+Replay again with a worse result.
+
+Expected:
+Saved stars DO NOT decrease.
+
+TEST 5 - Daily reward
+---------------------
+Claim a daily reward.
+Close and reopen.
+
+Expected:
+Claimed day stays claimed.
+Streak stays saved.
+
+TEST 6 - Android
+----------------
+Build APK and install on a real phone.
+
+Test:
+- Take off
+- Movement
+- Rotation
+- Ascend/descend
+- Pickup
+- Delivery
+- Pause
+- Restart
+- Upgrade
+- Mission unlock
+
+TEST 7 - Reset
+--------------
+Press the developer reset button.
+
+Expected:
+Everything returns to new-game values.
+
+PLAYERPREFS NOTE
+----------------
+This is a simple local save system, ideal for a single-player first release.
+PlayerPrefs is not secure against manual editing. Do not use it for sensitive
+data or competitive online economies.
+
+NEXT PHASE 1 STEP
+-----------------
+After this is working, the next thing I recommend is NOT NPCs yet.
+
+First make sure:
+1. Save works
+2. Mission progression works
+3. Stars work
+4. Upgrades persist
+5. Android controls work
+
+Then Phase 2 can safely add city life, NPCs, traffic and level-design polish.
